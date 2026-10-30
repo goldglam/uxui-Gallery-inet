@@ -1,8 +1,8 @@
 import { WebhookNotificationPayload } from '../types/api';
 
 export class NotificationService {
-  private static slackWebhookUrl = process.env.SLACK_WEBHOOK_URL;
-  private static teamsWebhookUrl = process.env.TEAMS_WEBHOOK_URL;
+  private static slackWebhookUrl = import.meta.env?.VITE_SLACK_WEBHOOK_URL || '';
+  private static teamsWebhookUrl = import.meta.env?.VITE_TEAMS_WEBHOOK_URL || '';
 
   /**
    * Dispatch notification to corporate Slack channel

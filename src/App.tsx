@@ -8,10 +8,27 @@ import { CtaBanner } from './components/CtaBanner';
 import { Footer } from './components/Footer';
 import { ProjectDetailModal } from './components/ProjectDetailModal';
 import { RequestModal } from './components/RequestModal';
-import { PROJECTS, CATEGORIES } from './data/mockData';
+import { PROJECTS as defaultProjects, CATEGORIES } from './data/mockData';
+import { projectService } from './services/projectService';
+import { isSupabaseConfigured } from './lib/supabase';
 import { Project, ThemeMode } from './types';
 
 export const App: React.FC = () => {
+  const [projects, setProjects] = useState<Project[]>(defaultProjects);
+  const [isLoadingProjects, setIsLoadingProjects] = useState(false);
+
+  // Fetch projects from Supabase on mount
+  useEffect(() => {
+    if (isSupabaseConfigured) {
+      setIsLoadingProjects(true);
+      projectService.getProjects()
+        .then(data => {
+          if (data && data.length > 0) setProjects(data);
+        })
+        .finally(() => setIsLoadingProjects(false));
+    }
+  }, []);
+
   // Theme with localStorage persistence & system preference check
   const [theme, setTheme] = useState<ThemeMode>(() => {
     if (typeof window !== 'undefined') {
@@ -72,9 +89,11 @@ export const App: React.FC = () => {
 
   const handleToggleFavorite = (id: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    setFavorites(prev => 
-      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
-    );
+    setFavorites(prev => {
+      const isFav = !prev.includes(id);
+      projectService.toggleFavorite(id, isFav);
+      return isFav ? [...prev, id] : prev.filter(item => item !== id);
+    });
   };
 
   const handleToggleFavoritesFilter = () => {
@@ -95,7 +114,7 @@ export const App: React.FC = () => {
   };
 
   // Filter projects by search, category, and favorites-only
-  const filteredProjects = PROJECTS.filter(project => {
+  const filteredProjects = projects.filter(project => {
     const q = searchQuery.toLowerCase().trim();
     const matchesSearch = !q ||
       project.title.toLowerCase().includes(q) ||
@@ -140,7 +159,7 @@ export const App: React.FC = () => {
           setFavoritesOnly(false);
         }}
         categories={CATEGORIES}
-        featuredProjects={PROJECTS.filter(p => p.featured)}
+        featuredProjects={projects.filter(p => p.featured)}
         onSelectProject={(p) => setSelectedProject(p)}
         onSearchSubmit={handleSearchSubmit}
       />
@@ -164,13 +183,13 @@ export const App: React.FC = () => {
 
       {/* Features Showcase Section */}
       <FeaturesSection
-        projects={PROJECTS}
+        projects={projects}
         onSelectProject={(p) => setSelectedProject(p)}
       />
 
       {/* Moodboard & Color Tokens */}
       <MoodboardSection
-        projects={PROJECTS}
+        projects={projects}
         onSelectProject={(p) => setSelectedProject(p)}
       />
 
@@ -192,7 +211,7 @@ export const App: React.FC = () => {
         isFavorite={selectedProject ? favorites.includes(selectedProject.id) : false}
         onToggleFavorite={handleToggleFavorite}
         onSelectProject={(p) => setSelectedProject(p)}
-        allProjects={PROJECTS}
+        allProjects={projects}
         onRequestDesign={(projectTitle) => {
           setSelectedProject(null);
           setRequestInitialProject(projectTitle);

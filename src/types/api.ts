@@ -1,4 +1,8 @@
-import { UserRole, ProjectStatus, TicketType, TicketStatus, TicketPriority } from '@prisma/client';
+export type UserRole = 'SUPER_ADMIN' | 'DESIGNER' | 'DEVELOPER' | 'VIEWER';
+export type ProjectStatus = 'DRAFT' | 'IN_REVIEW' | 'PUBLISHED' | 'ARCHIVED';
+export type TicketType = 'NEW_DESIGN' | 'DESIGN_SYSTEM_UPDATE' | 'UX_AUDIT' | 'REDESIGN' | 'CONSULTATION';
+export type TicketStatus = 'SUBMITTED' | 'UNDER_REVIEW' | 'IN_PROGRESS' | 'REVIEW_READY' | 'COMPLETED' | 'REJECTED';
+export type TicketPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
 
 export interface UserDTO {
   id: string;

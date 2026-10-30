@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { X, Send, Sparkles, CheckCircle2, User, Mail, Calendar, Briefcase } from 'lucide-react';
+import { X, Send, Sparkles, CheckCircle2, User, Mail, Calendar, Briefcase, Loader2 } from 'lucide-react';
 import { RequestFormData } from '../types';
+import { projectService } from '../services/projectService';
 
 interface RequestModalProps {
   isOpen: boolean;
@@ -46,13 +47,23 @@ export const RequestModal: React.FC<RequestModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => {
-      setSubmitted(false);
-      onClose();
-    }, 2500);
+    setIsSubmitting(true);
+    try {
+      await projectService.createRequest(formData);
+      setSubmitted(true);
+      setTimeout(() => {
+        setSubmitted(false);
+        setIsSubmitting(false);
+        onClose();
+      }, 2500);
+    } catch (err) {
+      console.error(err);
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -236,10 +247,20 @@ export const RequestModal: React.FC<RequestModalProps> = ({
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="w-full py-3.5 px-6 rounded-full bg-[#3BE29F] hover:bg-[#34c98d] text-[#0B111B] font-extrabold text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  disabled={isSubmitting}
+                  className="w-full py-3.5 px-6 rounded-full bg-[#3BE29F] hover:bg-[#34c98d] disabled:opacity-60 text-[#0B111B] font-extrabold text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <Send size={16} />
-                  <span>Submit Request to UX/UI Team</span>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" />
+                      <span>Submitting to Supabase...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send size={16} />
+                      <span>Submit Request to UX/UI Team</span>
+                    </>
+                  )}
                 </button>
               </div>
             </form>

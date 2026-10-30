@@ -18,7 +18,7 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({
 
   // Get matching projects for current feature
   const matchedProjects = projects.filter(p => 
-    currentCategory.relatedProjects.includes(p.id) ||
+    (currentCategory.relatedProjects as readonly string[]).includes(p.id) ||
     p.screens.some(s => s.type === activeFeature)
   );
 
